@@ -49,7 +49,7 @@ export async function GET() {
         acc[s.account].count++
         return acc
       }, {} as Record<string, { value: number; todayChange: number; count: number }>)
-    ).map(([account, data]) => ({ account, ...data }))
+    ).map(([account, data]) => ({ account, value: (data as any).value, todayChange: (data as any).todayChange, count: (data as any).count }))
 
     const totalValue = stocks.reduce((s, x) => s + x.value, 0)
     const totalTodayChange = stocks.reduce((s, x) => s + x.todayChange, 0)
