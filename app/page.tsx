@@ -80,18 +80,24 @@ export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState<string>('')
   const [activeTab, setActiveTab] = useState<'asset' | 'return'>('asset')
 
+  const [error, setError] = useState<string | null>(null)
+
   const fetchAll = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const [p, a, s] = await Promise.all([
-        fetch('/api/portfolio').then(r => r.json()),
-        fetch('/api/allocation').then(r => r.json()),
-        fetch('/api/summary').then(r => r.json()),
+        fetch('/api/portfolio').then(r => r.json()).catch(e => ({ error: e.message })),
+        fetch('/api/allocation').then(r => r.json()).catch(e => ({ error: e.message })),
+        fetch('/api/summary').then(r => r.json()).catch(e => ({ error: e.message })),
       ])
+      if (p.error) { setError(`Portfolio: ${p.error}`); return }
       setPortfolio(p)
       setAllocation(a)
       setSummary(s)
       setLastUpdated(new Date().toLocaleTimeString('ko-KR'))
+    } catch(e: any) {
+      setError(e.message || '알 수 없는 오류')
     } finally {
       setLoading(false)
     }
@@ -153,6 +159,12 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
+
+        {error && (
+          <div style={{ background: '#1a0a0a', border: '1px solid #f74f6a44', borderRadius: 12, padding: '16px 20px', marginBottom: 24, color: '#f74f6a', fontFamily: 'var(--font-mono)', fontSize: 13 }}>
+            ⚠️ 오류: {error}
+          </div>
+        )}
 
         {loading && !portfolio ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
@@ -267,7 +279,7 @@ export default function Dashboard() {
                       axisLine={false} tickLine={false}
                     />
                     <Tooltip content={<DarkTooltip formatter={(v: number) => `${fmtCompact(v)}원`} />} />
-                    <Bar dataKey="value" name="평가금액" radius={[0,4,4,0]} label={{ position: 'right', formatter: (v: number) => fmtCompact(v), fontSize: 11, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                    <Bar dataKey="value" name="평가금액" radius={[0,4,4,0]} label={{ position: 'right', formatter: (v: unknown) => fmtCompact(Number(v)), fontSize: 11, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                       {(portfolio?.stockSummary || []).map((_, i) => (
                         <Cell key={i} fill={`rgba(79,142,247,${0.9 - i * 0.05})`} />
                       ))}
