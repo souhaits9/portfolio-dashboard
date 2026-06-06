@@ -63,7 +63,7 @@ export async function GET() {
         return acc
       }, {} as Record<string, { value: number; todayChange: number }>)
     )
-      .map(([name, data]) => ({ name, ...data }))
+     .map(([name, data]) => ({ name, value: (data as any).value, todayChange: (data as any).todayChange }))
       .sort((a, b) => b.value - a.value)
 
     return NextResponse.json({
