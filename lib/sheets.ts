@@ -2,9 +2,15 @@ import { GoogleSpreadsheet } from 'google-spreadsheet'
 import { JWT } from 'google-auth-library'
 
 export async function getSheet(sheetTitle: string) {
+  const rawKey = process.env.GCP_PRIVATE_KEY || ''
+  const privateKey = rawKey
+    .replace(/\\n/g, '\n')
+    .replace(/\n/g, '\n')
+    .replace(/^"|"$/g, '')
+
   const serviceAccountAuth = new JWT({
     email: process.env.GCP_CLIENT_EMAIL,
-    key: process.env.GCP_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    key: privateKey,
     scopes: [
       'https://www.googleapis.com/auth/spreadsheets',
       'https://www.googleapis.com/auth/drive',
